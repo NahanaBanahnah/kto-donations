@@ -7,10 +7,27 @@ import FavoriteIcon from '@mui/icons-material/Favorite'
 import axios from 'axios'
 import ViewSource from '../src/components/ViewSource/ViewSource'
 import styles from '../styles/index.module.scss'
+import { useWindowSize } from 'react-use'
+import Confetti from 'react-confetti'
 
 const Index = () => {
 	const [TOTAL, setTotal] = useState()
 	const [PERCENT, setPercent] = useState(0)
+	const [loaded, setLoaded] = useState(false)
+	const [SHOW_CONFETTI, setShowConfetti] = useState(false)
+	const [RECYCLE, setRecycle] = useState(true)
+	const [LAST_TXN, setLastTxn] = useState(false)
+	const { width, height } = useWindowSize()
+	let i = 0
+
+	let donationClass = [styles.donationText]
+	if (SHOW_CONFETTI) {
+		donationClass.push(styles.show)
+	}
+
+	useEffect(() => {
+		setLoaded(true)
+	}, [])
 
 	const marks = [
 		{
@@ -31,10 +48,8 @@ const Index = () => {
 		const BALANCE = await axios.get(
 			`https://api.ethplorer.io/getAddressInfo/0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59?apiKey=${process.env.NEXT_PUBLIC_API}`
 		)
-
 		let ETH = BALANCE.data.ETH.balance * BALANCE.data.ETH.price.rate
 		let total = 0
-
 		for (const item of BALANCE.data.tokens) {
 			let tokens = item.rawBalance
 			let price = item.tokenInfo.price.rate
@@ -45,14 +60,42 @@ const Index = () => {
 		}
 		let fullTotal = ETH + total
 		let percent = fullTotal / 35000
-
 		setPercent(percent * 100)
 		setTotal(`$${fullTotal.toFixed(2)}`)
+		const HISTORY = await axios.get(
+			`https://api.ethplorer.io/getAddressHistory/0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59?apiKey=${process.env.NEXT_PUBLIC_API}`
+		)
+		console.log(HISTORY.data.operations)
+		let lastTransfer = HISTORY.data.operations.find(
+			ele => ele.type === 'transfer'
+		)
+		console.log(lastTransfer.timestamp)
+		if (LAST_TXN) {
+			console.log(LAST_TXN)
+			if (LAST_TXN !== lastTransfer.timestamp) {
+				showNewDonation()
+				setLastTxn(lastTransfer.timestamp)
+			}
+		} else {
+			setLastTxn(lastTransfer.timestamp)
+		}
+	}
+
+	const showNewDonation = async () => {
+		setShowConfetti(true)
+
+		await new Promise(resolve => setTimeout(resolve, 5000))
+		setRecycle(false)
+
+		await new Promise(resolve => setTimeout(resolve, 2000))
+		setShowConfetti(false)
+		setRecycle(true)
 	}
 
 	useEffect(() => {
 		FETCH()
 		let interval = setInterval(FETCH, 1 * 60 * 1000)
+
 		return () => {
 			clearInterval(interval) //This is important
 		}
@@ -64,7 +107,9 @@ const Index = () => {
 				<title>KTO Listing Donations</title>
 			</Head>
 			<ViewSource />
-
+			{SHOW_CONFETTI && (
+				<Confetti width={width} height={height} recycle={RECYCLE} />
+			)}
 			<Box
 				sx={{
 					margin: `0 auto`,
@@ -78,12 +123,13 @@ const Index = () => {
 				<Image src="/img/logo.png" width="600" height="91" alt="logo" />
 
 				<Typography
-					sx={{ typography: { xs: 'h5', sm: 'h4', lg: 'h2' } }}
+					sx={{ typography: { xs: 'h5', sm: 'h4', lg: 'h3' } }}
 					mt={4}
 					mb={4}
 				>
 					KTO Listing Donations
 				</Typography>
+
 				<Slider
 					defaultValue={0}
 					value={PERCENT}
@@ -94,6 +140,15 @@ const Index = () => {
 					valueLabelDisplay="on"
 					color="secondary"
 				/>
+				<Typography
+					variant="h4"
+					mt={4}
+					color="primary"
+					className={donationClass.join(' ')}
+				>
+					NEW DONATION!!
+				</Typography>
+
 				<Typography variant="caption" mt={4}>
 					Donation Wallet Address:
 				</Typography>

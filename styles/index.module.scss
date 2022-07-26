@@ -20,6 +20,14 @@
 	}
 }
 
+.donationText {
+	opacity: 0;
+	transition: opacity 0.25s ease-in-out;
+}
+.show {
+	opacity: 1;
+}
+
 .footer:hover {
 	.heart {
 		transform: scale(1.25);
