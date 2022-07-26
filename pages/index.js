@@ -94,6 +94,13 @@ const Index = () => {
 					valueLabelDisplay="on"
 					color="secondary"
 				/>
+				<Typography variant="caption" mt={4}>
+					Donation Wallet Address:
+				</Typography>
+				<Typography variant="body1" mb={4}>
+					0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59
+				</Typography>
+				<Image src="/img/qr.png" width="256" height="256" alt="logo" />
 			</Box>
 
 			<footer className={styles.footer}>
