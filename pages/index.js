@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Head from 'next/head'
-import Slider from '@mui/material/Slider'
+import { Slider, Box, Typography } from '@mui/material'
 import Image from 'next/image'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import axios from 'axios'
 import ViewSource from '../src/components/ViewSource/ViewSource'
 import styles from '../styles/index.module.scss'
-import { DateTime } from 'luxon'
 
 const Index = () => {
 	const [TOTAL, setTotal] = useState()
@@ -66,30 +65,32 @@ const Index = () => {
 			</Head>
 			<ViewSource />
 
-			<div className={styles.container}>
-				<div className={styles.content}>
-					<div className={styles.logo}>
-						<Image
-							src="/img/logo.png"
-							width="958"
-							height="146"
-							alt="logo"
-						/>
-					</div>
-					<h1>KTO Listing Donations</h1>
-					<Slider
-						defaultValue={0}
-						value={PERCENT}
-						aria-label="Always visible"
-						valueLabelFormat={TOTAL}
-						step={10}
-						marks={marks}
-						valueLabelDisplay="on"
-						disabled={true}
-						color="success"
-					/>
-				</div>
-			</div>
+			<Box
+				sx={{
+					margin: `0 auto`,
+					display: 'flex',
+					flexDirection: 'column',
+					alignItems: 'center',
+					width: { xs: 340, sm: 576, md: 768, lg: 1200, xl: 1400 },
+				}}
+				pt={4}
+			>
+				<Image src="/img/logo.png" width="600" height="91" alt="logo" />
+
+				<Typography variant="h2" mt={4} mb={4}>
+					KTO Listing Donations
+				</Typography>
+				<Slider
+					defaultValue={0}
+					value={PERCENT}
+					aria-label="Always visible"
+					valueLabelFormat={TOTAL}
+					step={10}
+					marks={marks}
+					valueLabelDisplay="on"
+					color="secondary"
+				/>
+			</Box>
 
 			<footer className={styles.footer}>
 				Made With <FavoriteIcon className={styles.heart} /> By Nahana

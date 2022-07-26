@@ -1,5 +1,5 @@
 {
-  "name": "kto-reflections",
+  "name": "kto-donations",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,22 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@emotion/react": "^11.9.0",
-    "@emotion/styled": "^11.8.1",
-    "@fontsource/roboto": "^4.5.5",
-    "@mui/icons-material": "^5.6.2",
-    "@mui/material": "^5.6.4",
+    "@emotion/react": "^11.9.3",
+    "@emotion/styled": "^11.9.3",
+    "@mui/icons-material": "^5.8.4",
+    "@mui/material": "^5.9.2",
     "axios": "^0.27.2",
-    "eth-balance-checker": "^0.2.0",
-    "luxon": "^2.3.2",
-    "next": "12.1.6",
-    "react": "18.1.0",
-    "react-dom": "18.1.0",
-    "web3": "^1.7.4"
+    "next": "12.2.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "sass": "^1.54.0"
   },
   "devDependencies": {
-    "eslint": "8.14.0",
-    "eslint-config-next": "12.1.6",
-    "sass": "^1.51.0"
+    "eslint": "8.20.0",
+    "eslint-config-next": "12.2.3"
   }
 }

@@ -1,24 +1,29 @@
-import '../styles/globals.scss'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
+
+import CssBaseline from '@mui/material/CssBaseline'
 
 const darkTheme = createTheme({
 	palette: {
 		mode: 'dark',
+		background: {
+			default: '#282828',
+		},
 		primary: {
-			main: '#772a54',
+			main: '#DA9A62',
 		},
 		secondary: {
-			main: '#d79162',
+			main: '#32BCBC',
 		},
 	},
 })
 
-function MyApp({ Component, pageProps }) {
+const App = ({ Component, pageProps }) => {
 	return (
 		<ThemeProvider theme={darkTheme}>
+			<CssBaseline />
 			<Component {...pageProps} />
 		</ThemeProvider>
 	)
 }
 
-export default MyApp
+export default App

@@ -13,7 +13,7 @@ const ViewSource = ({ pathname }) => (
 			title="View Source"
 			href={`https://github.com/NahanaBanahnah/kto-donations`}
 		>
-			<path d="M0 0l115 115h15l12 27 108 108V0z" fill="#d59261" />
+			<path d="M0 0l115 115h15l12 27 108 108V0z" fill="#32BCBC" />
 			<path
 				className={arm}
 				fill="#fff"
