@@ -77,7 +77,11 @@ const Index = () => {
 			>
 				<Image src="/img/logo.png" width="600" height="91" alt="logo" />
 
-				<Typography variant="h2" mt={4} mb={4}>
+				<Typography
+					sx={{ typography: { xs: 'h5', sm: 'h4', lg: 'h2' } }}
+					mt={4}
+					mb={4}
+				>
 					KTO Listing Donations
 				</Typography>
 				<Slider
