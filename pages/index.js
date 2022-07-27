@@ -156,6 +156,14 @@ const Index = () => {
 					0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59
 				</Typography>
 				<Image src="/img/qr.png" width="256" height="256" alt="logo" />
+				<Typography variant="body1" mt={4}>
+					Total auto updates every minute
+					<br />
+					Values are estimated and may differ slightly
+					<br />
+					Only ERC20 tokens are counted in this tally
+					<br />
+				</Typography>
 			</Box>
 
 			<footer className={styles.footer}>
