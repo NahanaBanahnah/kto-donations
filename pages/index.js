@@ -155,7 +155,7 @@ const Index = () => {
 				<Typography variant="body1" mb={4}>
 					0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59
 				</Typography>
-				<Image src="/img/qr.png" width="256" height="256" alt="logo" />
+				<Image src="/img/qr.png" width="150" height="150" alt="logo" />
 				<Typography variant="body1" mt={4}>
 					Total auto updates every minute
 					<br />
