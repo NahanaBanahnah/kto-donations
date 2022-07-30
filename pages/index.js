@@ -1,29 +1,34 @@
 import React, { useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Head from 'next/head'
-import { Slider, Box, Typography } from '@mui/material'
+import {
+	Slider,
+	Box,
+	Typography,
+	Skeleton,
+	CircularProgress,
+} from '@mui/material'
 import Image from 'next/image'
 import FavoriteIcon from '@mui/icons-material/Favorite'
 import axios from 'axios'
 import ViewSource from '../src/components/ViewSource/ViewSource'
 import styles from '../styles/index.module.scss'
-import { useWindowSize } from 'react-use'
-import Confetti from 'react-confetti'
 
 const Index = () => {
-	const [TOTAL, setTotal] = useState()
+	const [TOTAL, setTotal] = useState(null)
+	const [IS_UPDATING, setUpdating] = useState(false)
+	const [LOADING, setLoading] = useState('Loading...')
+	const [DELAY, setDelay] = useState(2)
 	const [PERCENT, setPercent] = useState(0)
 	const [loaded, setLoaded] = useState(false)
-	const [SHOW_CONFETTI, setShowConfetti] = useState(false)
-	const [RECYCLE, setRecycle] = useState(true)
-	const [LAST_TXN, setLastTxn] = useState(false)
-	const { width, height } = useWindowSize()
+
 	let i = 0
+	let updatingOpacity = 0
+	if (IS_UPDATING) {
+		updatingOpacity = 1
+	}
 
 	let donationClass = [styles.donationText]
-	if (SHOW_CONFETTI) {
-		donationClass.push(styles.show)
-	}
 
 	useEffect(() => {
 		setLoaded(true)
@@ -44,57 +49,109 @@ const Index = () => {
 		},
 	]
 
-	const FETCH = async () => {
-		const BALANCE = await axios.get(
-			`https://api.ethplorer.io/getAddressInfo/0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59?apiKey=${process.env.NEXT_PUBLIC_API}`
-		)
-		let ETH = BALANCE.data.ETH.balance * BALANCE.data.ETH.price.rate
-		let total = 0
-		for (const item of BALANCE.data.tokens) {
-			let tokens = item.rawBalance
-			let price = item.tokenInfo.price.rate
-			let decimal = item.tokenInfo.decimals
-			let divisor = 10 ** decimal
-			let tokenTotal = (tokens * price) / divisor
-			total = total + tokenTotal
+	const FETCH = async first => {
+		if (!first) {
+			setUpdating(true)
 		}
-		let fullTotal = ETH + total
-		let percent = fullTotal / 35000
-		setPercent(percent * 100)
-		setTotal(`$${fullTotal.toFixed(2)}`)
-		const HISTORY = await axios.get(
-			`https://api.ethplorer.io/getAddressHistory/0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59?apiKey=${process.env.NEXT_PUBLIC_API}`
-		)
-		console.log(HISTORY.data.operations)
-		let lastTransfer = HISTORY.data.operations.find(
-			ele => ele.type === 'transfer'
-		)
-		console.log(lastTransfer.timestamp)
-		if (LAST_TXN) {
-			console.log(LAST_TXN)
-			if (LAST_TXN !== lastTransfer.timestamp) {
-				showNewDonation()
-				setLastTxn(lastTransfer.timestamp)
+
+		const END = `https://deep-index.moralis.io/api/v2/`
+		const WALLET = `0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59`
+		const HEADERS = {
+			headers: {
+				'X-API-Key': process.env.NEXT_PUBLIC_MOR,
+			},
+		}
+
+		try {
+			const BNC = await axios.get(
+				`${END}${WALLET}/erc20?chain=bsc`,
+				HEADERS
+			)
+
+			const ERC = await axios.get(
+				`https://deep-index.moralis.io/api/v2/0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59/erc20?chain=eth`,
+				HEADERS
+			)
+			const POLY = await axios.get(
+				`https://deep-index.moralis.io/api/v2/0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59/erc20?chain=polygon`,
+				HEADERS
+			)
+			const BNC_BALANCE = await axios.get(
+				`https://deep-index.moralis.io/api/v2/0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59/balance?chain=bsc`,
+				HEADERS
+			)
+			const ETH_BALANCE = await axios.get(
+				`https://deep-index.moralis.io/api/v2/0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59/balance?chain=eth`,
+				HEADERS
+			)
+			const BNB_PRICE = await axios.get(
+				'https://deep-index.moralis.io/api/v2/erc20/0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c/price?chain=bsc',
+				HEADERS
+			)
+			const ETH_PRICE = await axios.get(
+				'https://deep-index.moralis.io/api/v2/erc20/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2/price?chain=eth',
+				HEADERS
+			)
+
+			let eth_usd =
+				(ETH_PRICE.data.usdPrice * ETH_BALANCE.data.balance) / 10 ** 18
+
+			let bnb_usd =
+				(BNB_PRICE.data.usdPrice * BNC_BALANCE.data.balance) / 10 ** 18
+
+			let bncArray = BNC.data.map(v => ({ ...v, chain: 'bsc' }))
+			let ercArray = ERC.data.map(v => ({ ...v, chain: 'eth' }))
+			let polyArray = POLY.data.map(v => ({ ...v, chain: 'polygon' }))
+
+			const TOKENS = [...ercArray, ...bncArray, ...polyArray]
+
+			let total = eth_usd + bnb_usd
+
+			for (const item of TOKENS) {
+				// screw this token
+				if (
+					item.token_address !==
+					'0x949e0a0672299e6fcd6bec3bd1735d6647b20618'
+				) {
+					let tokens = item.balance
+
+					let { data } = await axios.get(
+						`https://deep-index.moralis.io/api/v2/erc20/${item.token_address}/price?chain=${item.chain}`,
+						HEADERS
+					)
+					let decimal = item.decimals
+					let divisor = 10 ** decimal
+					let price = data.usdPrice / divisor
+					let tokenTotal = tokens * price
+					total = total + tokenTotal
+				}
 			}
-		} else {
-			setLastTxn(lastTransfer.timestamp)
+
+			let fullTotal = total
+
+			let percent = fullTotal / 35000
+			setPercent(percent * 100)
+			setTotal(`$${fullTotal.toFixed(2)}`)
+			setUpdating(false)
+		} catch (e) {
+			let delay = DELAY + 1
+			setDelay(delay)
+			if (delay >= 3) {
+				setLoading('Hang In There')
+			}
+
+			setTimeout(() => {
+				FETCH(false)
+			}, delay * 1000)
 		}
-	}
-
-	const showNewDonation = async () => {
-		setShowConfetti(true)
-
-		await new Promise(resolve => setTimeout(resolve, 5000))
-		setRecycle(false)
-
-		await new Promise(resolve => setTimeout(resolve, 2000))
-		setShowConfetti(false)
-		setRecycle(true)
 	}
 
 	useEffect(() => {
-		FETCH()
-		let interval = setInterval(FETCH, 1 * 60 * 1000)
+		FETCH(true)
+
+		let interval = setInterval(() => {
+			FETCH(false)
+		}, 1 * 60 * 1000)
 
 		return () => {
 			clearInterval(interval) //This is important
@@ -107,9 +164,7 @@ const Index = () => {
 				<title>KTO Listing Donations</title>
 			</Head>
 			<ViewSource />
-			{SHOW_CONFETTI && (
-				<Confetti width={width} height={height} recycle={RECYCLE} />
-			)}
+
 			<Box
 				sx={{
 					margin: `0 auto`,
@@ -130,24 +185,41 @@ const Index = () => {
 					KTO Listing Donations
 				</Typography>
 
-				<Slider
-					defaultValue={0}
-					value={PERCENT}
-					aria-label="Always visible"
-					valueLabelFormat={TOTAL}
-					step={10}
-					marks={marks}
-					valueLabelDisplay="on"
-					color="secondary"
-				/>
-				<Typography
-					variant="h4"
+				{TOTAL ? (
+					<>
+						<Slider
+							defaultValue={0}
+							value={PERCENT}
+							aria-label="Always visible"
+							valueLabelFormat={TOTAL}
+							step={10}
+							marks={marks}
+							valueLabelDisplay="on"
+							color="secondary"
+						/>
+					</>
+				) : (
+					<>
+						<Typography variant="caption">{LOADING}</Typography>
+						<Skeleton variant="text" width={320} />
+					</>
+				)}
+
+				<Box
 					mt={4}
-					color="primary"
-					className={donationClass.join(' ')}
+					sx={{
+						alignSelf: 'start',
+						display: 'flex',
+						alignContent: 'center',
+						opacity: updatingOpacity,
+					}}
 				>
-					NEW DONATION!!
-				</Typography>
+					<CircularProgress size={16} />
+
+					<Typography ml={1} variant="caption">
+						Updating
+					</Typography>
+				</Box>
 
 				<Typography variant="caption" mt={4}>
 					Donation Wallet Address:
@@ -160,9 +232,6 @@ const Index = () => {
 					Total auto updates every minute
 					<br />
 					Values are estimated and may differ slightly
-					<br />
-					Only ERC20 tokens are counted in this tally
-					<br />
 				</Typography>
 			</Box>
 
