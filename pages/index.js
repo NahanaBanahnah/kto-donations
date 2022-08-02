@@ -18,11 +18,12 @@ const Index = () => {
 	const [TOTAL, setTotal] = useState(null)
 	const [IS_UPDATING, setUpdating] = useState(false)
 	const [LOADING, setLoading] = useState('Loading...')
-	const [DELAY, setDelay] = useState(2)
+	const [TIME_OUT, setTimedOut] = useState(false)
 	const [PERCENT, setPercent] = useState(0)
 	const [loaded, setLoaded] = useState(false)
 
 	let i = 0
+	let delay = 2
 	let updatingOpacity = 0
 	if (IS_UPDATING) {
 		updatingOpacity = 1
@@ -41,7 +42,7 @@ const Index = () => {
 		},
 		{
 			value: 50,
-			label: '$17,500',
+			label: `$17,500 Payment Made!`,
 		},
 		{
 			value: 100,
@@ -99,32 +100,35 @@ const Index = () => {
 			let bnb_usd =
 				(BNB_PRICE.data.usdPrice * BNC_BALANCE.data.balance) / 10 ** 18
 
+			const BLACKLIST = [
+				'0x949e0a0672299e6fcd6bec3bd1735d6647b20618',
+				'0x7aa3a53360541283ffa9192972223b47a902dc0c',
+			]
 			let bncArray = BNC.data.map(v => ({ ...v, chain: 'bsc' }))
+
+			bncArray = bncArray.filter(
+				v => !BLACKLIST.includes(v.token_address)
+			)
+
 			let ercArray = ERC.data.map(v => ({ ...v, chain: 'eth' }))
 			let polyArray = POLY.data.map(v => ({ ...v, chain: 'polygon' }))
 
 			const TOKENS = [...ercArray, ...bncArray, ...polyArray]
 
-			let total = eth_usd + bnb_usd
+			let total = 17000 + eth_usd + bnb_usd
 
 			for (const item of TOKENS) {
-				// screw this token
-				if (
-					item.token_address !==
-					'0x949e0a0672299e6fcd6bec3bd1735d6647b20618'
-				) {
-					let tokens = item.balance
+				let tokens = item.balance
 
-					let { data } = await axios.get(
-						`https://deep-index.moralis.io/api/v2/erc20/${item.token_address}/price?chain=${item.chain}`,
-						HEADERS
-					)
-					let decimal = item.decimals
-					let divisor = 10 ** decimal
-					let price = data.usdPrice / divisor
-					let tokenTotal = tokens * price
-					total = total + tokenTotal
-				}
+				let { data } = await axios.get(
+					`https://deep-index.moralis.io/api/v2/erc20/${item.token_address}/price?chain=${item.chain}`,
+					HEADERS
+				)
+				let decimal = item.decimals
+				let divisor = 10 ** decimal
+				let price = data.usdPrice / divisor
+				let tokenTotal = tokens * price
+				total = total + tokenTotal
 			}
 
 			let fullTotal = total
@@ -134,24 +138,39 @@ const Index = () => {
 			setTotal(`$${fullTotal.toFixed(2)}`)
 			setUpdating(false)
 		} catch (e) {
-			let delay = DELAY + 1
-			setDelay(delay)
+			delay++
 			if (delay >= 3) {
 				setLoading('Hang In There')
 			}
 
-			setTimeout(() => {
-				FETCH(false)
-			}, delay * 1000)
+			if (delay <= 5) {
+				setTimeout(() => {
+					FETCH(true)
+				}, delay * 1000)
+				throw 'retrying'
+			} else {
+				setLoading(
+					`Oops ... Something isn't right ... You should let Nahana know in the Discord`
+				)
+				setTimedOut(true)
+				throw 'Timed Out'
+				return false
+			}
 		}
 	}
 
 	useEffect(() => {
-		// FETCH(true)
+		let interval
 
-		let interval = setInterval(() => {
-			// FETCH(false)
-		}, 1 * 60 * 1000)
+		const INIT = async () => {
+			await FETCH(true)
+
+			interval = setInterval(() => {
+				FETCH(false)
+			}, 1 * 60 * 1000)
+		}
+
+		INIT()
 
 		return () => {
 			clearInterval(interval) //This is important
@@ -200,11 +219,8 @@ const Index = () => {
 					</>
 				) : (
 					<>
-						{/* <Typography variant="caption">{LOADING}</Typography> */}
-						<Typography variant="caption">
-							BRB ... Nahana Is Fixing Stuff
-						</Typography>
-						<Skeleton variant="text" width={320} />
+						<Typography variant="caption">{LOADING}</Typography>
+						{!TIME_OUT && <Skeleton variant="text" width={320} />}
 					</>
 				)}
 
