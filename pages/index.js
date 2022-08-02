@@ -147,10 +147,10 @@ const Index = () => {
 	}
 
 	useEffect(() => {
-		FETCH(true)
+		// FETCH(true)
 
 		let interval = setInterval(() => {
-			FETCH(false)
+			// FETCH(false)
 		}, 1 * 60 * 1000)
 
 		return () => {
@@ -200,7 +200,10 @@ const Index = () => {
 					</>
 				) : (
 					<>
-						<Typography variant="caption">{LOADING}</Typography>
+						{/* <Typography variant="caption">{LOADING}</Typography> */}
+						<Typography variant="caption">
+							BRB ... Nahana Is Fixing Stuff
+						</Typography>
 						<Skeleton variant="text" width={320} />
 					</>
 				)}
