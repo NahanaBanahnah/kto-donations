@@ -4,6 +4,7 @@ import Head from 'next/head'
 import {
 	Slider,
 	Box,
+	Button,
 	Typography,
 	Skeleton,
 	CircularProgress,
@@ -16,6 +17,8 @@ import styles from '../styles/index.module.scss'
 
 const Index = () => {
 	const [TOTAL, setTotal] = useState(null)
+	const [KTO_TOTAL, setKTOTotal] = useState(null)
+	const [SHOW_FULL, setShowFull] = useState(false)
 	const [IS_UPDATING, setUpdating] = useState(false)
 	const [LOADING, setLoading] = useState('Loading...')
 	const [TIME_OUT, setTimedOut] = useState(false)
@@ -30,6 +33,11 @@ const Index = () => {
 	}
 
 	let donationClass = [styles.donationText]
+	let buttonDisplay = SHOW_FULL ? 'SHOW WITHOUT KTO' : 'SHOW FULL TOTAL'
+	let buttonClass = SHOW_FULL ? 'secondary' : 'primary'
+	let totalToUse = SHOW_FULL ? TOTAL : KTO_TOTAL
+
+	let percent = TOTAL ? (totalToUse / 35000) * 100 : 0
 
 	useEffect(() => {
 		setLoaded(true)
@@ -116,6 +124,7 @@ const Index = () => {
 			const TOKENS = [...ercArray, ...bncArray, ...polyArray]
 
 			let total = 17000 + eth_usd + bnb_usd
+			let ktoTotal
 
 			for (const item of TOKENS) {
 				let tokens = item.balance
@@ -124,18 +133,22 @@ const Index = () => {
 					`https://deep-index.moralis.io/api/v2/erc20/${item.token_address}/price?chain=${item.chain}`,
 					HEADERS
 				)
+
 				let decimal = item.decimals
 				let divisor = 10 ** decimal
 				let price = data.usdPrice / divisor
 				let tokenTotal = tokens * price
 				total = total + tokenTotal
+				if (item.name === 'Kounotori') {
+					ktoTotal = tokenTotal
+				}
 			}
 
 			let fullTotal = total
+			let toGo = 35000 - fullTotal
 
-			let percent = fullTotal / 35000
-			setPercent(percent * 100)
-			setTotal(`$${fullTotal.toFixed(2)}`)
+			setTotal(fullTotal)
+			setKTOTotal(fullTotal - ktoTotal)
 			setUpdating(false)
 		} catch (e) {
 			delay++
@@ -158,6 +171,8 @@ const Index = () => {
 			}
 		}
 	}
+
+	const toggleView = () => setShowFull(value => !value)
 
 	useEffect(() => {
 		let interval
@@ -208,9 +223,9 @@ const Index = () => {
 					<>
 						<Slider
 							defaultValue={0}
-							value={PERCENT}
+							value={percent}
 							aria-label="Always visible"
-							valueLabelFormat={TOTAL}
+							valueLabelFormat={`$${totalToUse.toFixed(2)}`}
 							step={10}
 							marks={marks}
 							valueLabelDisplay="on"
@@ -223,9 +238,29 @@ const Index = () => {
 						{!TIME_OUT && <Skeleton variant="text" width={320} />}
 					</>
 				)}
+				{TOTAL && (
+					<Typography
+						variant="h5"
+						color="secondary"
+						mt={4}
+						mb={2}
+					>{`$${(35000 - totalToUse).toFixed(
+						2
+					)} To Go!!`}</Typography>
+				)}
+				{TOTAL && (
+					<Button
+						variant="contained"
+						size="small"
+						color={buttonClass}
+						onClick={toggleView}
+					>
+						{buttonDisplay}
+					</Button>
+				)}
 
 				<Box
-					mt={4}
+					mt={2}
 					sx={{
 						alignSelf: 'start',
 						display: 'flex',
@@ -240,7 +275,7 @@ const Index = () => {
 					</Typography>
 				</Box>
 
-				<Typography variant="caption" mt={4}>
+				<Typography variant="caption">
 					Donation Wallet Address:
 				</Typography>
 				<Typography variant="body1" mb={4}>
