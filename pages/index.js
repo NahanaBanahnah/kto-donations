@@ -282,7 +282,7 @@ const Index = () => {
 					0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59
 				</Typography>
 				<Image src="/img/qr.png" width="150" height="150" alt="logo" />
-				<Typography variant="body1" mt={4}>
+				<Typography variant="body1" mt={4} sx={{ textAlign: 'center' }}>
 					Total auto updates every minute
 					<br />
 					Values are estimated and may differ slightly
