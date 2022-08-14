@@ -248,7 +248,7 @@ const Index = () => {
 						2
 					)} To Go!!`}</Typography>
 				)}
-				{TOTAL && (
+				{/* {TOTAL && (
 					<Button
 						variant="contained"
 						size="small"
@@ -257,7 +257,7 @@ const Index = () => {
 					>
 						{buttonDisplay}
 					</Button>
-				)}
+				)} */}
 
 				<Box
 					mt={2}
