@@ -16,6 +16,7 @@ import ViewSource from '../src/components/ViewSource/ViewSource'
 import styles from '../styles/index.module.scss'
 
 const Index = () => {
+	return false
 	const [TOTAL, setTotal] = useState(null)
 	const [KTO_TOTAL, setKTOTotal] = useState(null)
 	const [SHOW_FULL, setShowFull] = useState(false)
