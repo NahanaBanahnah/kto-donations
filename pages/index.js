@@ -16,7 +16,6 @@ import ViewSource from '../src/components/ViewSource/ViewSource'
 import styles from '../styles/index.module.scss'
 
 const Index = () => {
-	return false
 	const [TOTAL, setTotal] = useState(null)
 	const [KTO_TOTAL, setKTOTotal] = useState(null)
 	const [SHOW_FULL, setShowFull] = useState(false)
@@ -36,9 +35,9 @@ const Index = () => {
 	let donationClass = [styles.donationText]
 	let buttonDisplay = SHOW_FULL ? 'SHOW WITHOUT KTO' : 'SHOW FULL TOTAL'
 	let buttonClass = SHOW_FULL ? 'secondary' : 'primary'
-	let totalToUse = SHOW_FULL ? TOTAL : KTO_TOTAL
+	let totalToUse = TOTAL
 
-	let percent = TOTAL ? (totalToUse / 35000) * 100 : 0
+	let percent = (TOTAL / 35000) * 100
 
 	useEffect(() => {
 		setLoaded(true)
@@ -51,7 +50,7 @@ const Index = () => {
 		},
 		{
 			value: 50,
-			label: `$17,500 Payment Made!`,
+			label: `$17,500`,
 		},
 		{
 			value: 100,
@@ -112,19 +111,28 @@ const Index = () => {
 			const BLACKLIST = [
 				'0x949e0a0672299e6fcd6bec3bd1735d6647b20618',
 				'0x7aa3a53360541283ffa9192972223b47a902dc0c',
+				'0x725e02c7f9168f45b3699cfb7c262fb6dd355e84',
+				'0x5229cadb824fd5117f00e3614c138b62f2bd3156',
 			]
 			let bncArray = BNC.data.map(v => ({ ...v, chain: 'bsc' }))
+			let ercArray = ERC.data.map(v => ({ ...v, chain: 'eth' }))
+			let polyArray = POLY.data.map(v => ({ ...v, chain: 'polygon' }))
 
 			bncArray = bncArray.filter(
 				v => !BLACKLIST.includes(v.token_address)
 			)
 
-			let ercArray = ERC.data.map(v => ({ ...v, chain: 'eth' }))
-			let polyArray = POLY.data.map(v => ({ ...v, chain: 'polygon' }))
+			ercArray = ercArray.filter(
+				v => !BLACKLIST.includes(v.token_address)
+			)
+
+			polyArray = polyArray.filter(
+				v => !BLACKLIST.includes(v.token_address)
+			)
 
 			const TOKENS = [...ercArray, ...bncArray, ...polyArray]
 
-			let total = 17000 + eth_usd + bnb_usd
+			let total = eth_usd + bnb_usd + 35000
 			let ktoTotal
 
 			for (const item of TOKENS) {
@@ -139,14 +147,18 @@ const Index = () => {
 				let divisor = 10 ** decimal
 				let price = data.usdPrice / divisor
 				let tokenTotal = tokens * price
-				total = total + tokenTotal
-				if (item.name === 'Kounotori') {
-					ktoTotal = tokenTotal
+				console.log(item.name, item.token_address, tokenTotal)
+
+				if (item.name != 'Kounotori') {
+					total = total + tokenTotal
+				} else {
+					total = total
 				}
 			}
 
+			console.log('--------------------')
+
 			let fullTotal = total
-			let toGo = 35000 - fullTotal
 
 			setTotal(fullTotal)
 			setKTOTotal(fullTotal - ktoTotal)
@@ -226,7 +238,13 @@ const Index = () => {
 							defaultValue={0}
 							value={percent}
 							aria-label="Always visible"
-							valueLabelFormat={`$${totalToUse.toFixed(2)}`}
+							valueLabelFormat={`${totalToUse.toLocaleString(
+								'en-US',
+								{
+									style: 'currency',
+									currency: 'USD',
+								}
+							)}`}
 							step={10}
 							marks={marks}
 							valueLabelDisplay="on"
@@ -240,14 +258,13 @@ const Index = () => {
 					</>
 				)}
 				{TOTAL && (
-					<Typography
-						variant="h5"
-						color="secondary"
-						mt={4}
-						mb={2}
-					>{`$${(35000 - totalToUse).toFixed(
-						2
-					)} To Go!!`}</Typography>
+					<Typography variant="h5" color="secondary" mt={4} mb={2}>
+						We did it with a surplus of{' '}
+						{(TOTAL - 35000).toLocaleString('en-US', {
+							style: 'currency',
+							currency: 'USD',
+						})}
+					</Typography>
 				)}
 				{/* {TOTAL && (
 					<Button
@@ -275,7 +292,19 @@ const Index = () => {
 						Updating
 					</Typography>
 				</Box>
-
+				<Typography
+					variant="body1"
+					mb={4}
+					sx={{ textAlign: { lg: 'center' } }}
+				>
+					From now until 31st Aug, Kounotori Exchange, Ltd is
+					rewarding a maximum of 100 total shares if you donate
+					$1,000+ USD.
+					<br />
+					<br />
+					Surpuls will be used for CEX development, and potential
+					future listings.
+				</Typography>
 				<Typography variant="caption">
 					Donation Wallet Address:
 				</Typography>
@@ -283,7 +312,11 @@ const Index = () => {
 					0xc4669a3804a5d817e5afaf2656f9743f8a3a4e59
 				</Typography>
 				<Image src="/img/qr.png" width="150" height="150" alt="logo" />
-				<Typography variant="body1" mt={4} sx={{ textAlign: 'center' }}>
+				<Typography
+					variant="body2"
+					mt={4}
+					sx={{ textAlign: 'center', marginBottom: '64px' }}
+				>
 					Total auto updates every minute
 					<br />
 					Values are estimated and may differ slightly
